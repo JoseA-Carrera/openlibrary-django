@@ -3,6 +3,7 @@ import requests as rq
 
 def books(request):
     try:
+        # se trae todos los datos json y pasarlos a diccionario
         query_set = request.GET.get('name')
         url = 'http://openlibrary.org/search.json?title=' + query_set
         response =  rq.get(url)
@@ -10,27 +11,28 @@ def books(request):
         data_dict = dict(data)
         docs = data_dict.get('docs') 
 
-        book = {} # 'book' almacenara de manera anidada todos los datos al template siendo las keys lo titulos
+        # 'book' tendra toda la informacion para enviarla al template
+        book = {} 
 
-        for key in docs: # 'key' iterara dentro de docs todas las keys que traiga la consulta requests
-            values = [] # 'values' sera una lista que almacenara la url de imagen y nombre de author
-
+        # dentro de 'docs' hay varias keys que corresponde a un objeto de la busqueda
+        for key in docs: 
+            values = [] 
 
             cover = key.get('cover_i')
             title = key.get('title')
             author =  key.get('author_name')
 
-            if cover == None: # al la key que no tenga url de imagen 'cover' traera de internet una img 404
+            # al no tener portada se accedera a un jpg 404 de internet
+            if cover == None: 
                 cover = 'https://www.404.agency/static/images/404-share-image.png'
             else:
                 cover = f'https://covers.openlibrary.org/b/id/{cover}-M.jpg'
 
-            values.append(cover)
-            values.append(author)
-
+            values.append(cover) 
+            values.append(author) 
             dic = { title: values }
-            book |= dic # 'book' concatenara a cada diccionario'dic' del momento
-
+            # se concatenara de manera anidada a 'book'
+            book |= dic 
 
         if response.status_code == 200:
             return render(request, 'index.html', {'books': book})
@@ -41,6 +43,7 @@ def books(request):
     except:
         return render(request, 'index.html',)
 
+#el mismo codigo aplica a la vista authors
 def authors(request):
     try:
         query_set = request.GET.get('name') 
@@ -62,11 +65,16 @@ def authors(request):
 
             photo = f'https://covers.openlibrary.org/a/olid/{photo}-M.jpg'
             
-            if death == None:
-                death = 'now'
-
             values.append(photo)
             values.append(top)
+            
+            if death == None:
+                death = 'now'
+                
+                if birth == None:
+                    birth = 'no se sabe'
+                    values.append(birth)
+                
             values.append(birth)
             values.append(death)
 
@@ -80,3 +88,4 @@ def authors(request):
 
     except:
         return render(request, 'author.html',)
+    
